@@ -1,8 +1,14 @@
-lint:
-	npx eslint
 install:
 	npm ci
-dev:
-	npm dev
+
+develop:
+	npm run dev
+
+lint:
+	npx eslint .
+
 build:
-	npm build
+	NODE_ENV=production npm run build
+
+test:
+	echo no tests
