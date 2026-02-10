@@ -1,9 +1,12 @@
+/* eslint-disable import/extensions */
+/* eslint-disable */
 import './style.css';
 import { proxy, snapshot, subscribe } from 'valtio/vanilla';
 import { validateForm, validateDublicate } from './validation.js';
 
 export default () => {
   const state = proxy({
+    
     formUrl: {
       url: '',
       errors: [],
@@ -14,9 +17,7 @@ export default () => {
       errors: [],
     },
 
-    feeds: {
-      list: [],
-    },
+    feeds: [],
 
   });
 
@@ -49,12 +50,12 @@ export default () => {
   }
 
   function render() {
-    console.log(state.feeds.list);
+    console.log(state.feeds);
     elements.container.innerHTML = '';
     elements.feeds.innerHTML = '';
 
     addStyles();
-    state.feeds.list.forEach((feed) => {
+    state.feeds.forEach((feed) => {
       const h2El = document.createElement('h2');
       h2El.textContent = 'New Feed';
       const pEl = document.createElement('p');
@@ -72,37 +73,40 @@ export default () => {
 
   subscribe(state, render);
 
-  elements.formEl.addEventListener('submit', async (event) => {
+  elements.formEl.addEventListener('submit', (event) => {
     event.preventDefault();
 
     const formData = new FormData(event.target).get('url');
-    const validationResult = await validateForm({ url: formData });
-    console.log(formData);
+    const url = formData.trim();
+    console.log(url);
 
-    if (Object.entries(validationResult).length !== 0) {
-      state.rssProcess.stateProcess = 'failed';
-      state.rssProcess.errors.push(validationResult.message);
-      console.log(state.rssProcess.errors);
-      return;
-    }
+    state.rssProcess.errors = [];
+    state.rssProcess.stateProcess = 'processing';
 
-    const validateDublicateResult = validateDublicate(formData, state.feeds.list);
-    console.log(validateDublicateResult);
-    console.log(Object.entries(validateDublicateResult));
+    validateForm(({url}))
+      .then(formResult => {
+        if (formResult instanceof Error) {
+            throw formResult
+        }
+        const dublicateResult = validateDublicate(url, state.feeds)
 
-    if (Object.entries(validateDublicateResult).length !== 0) {
-      state.rssProcess.stateProcess = 'failed';
-      state.rssProcess.errors.push(validateDublicateResult.message);
-      console.log(state.rssProcess.errors);
-      return;
-    }
+        if (dublicateResult instanceof Error) {
+            throw dublicateResult
+        }
 
-    state.rssProcess.stateProcess = 'searching';
-
-    setTimeout(() => {
-      state.rssProcess.stateProcess = 'success';
-      state.feeds.list.push(formData);
-    }, 100);
+        return new Promise(resolve => setTimeout(resolve, 100));
+      })
+      .then(() => {
+        state.feeds.push(url);
+        state.rssProcess.stateProcess = 'success';
+        event.target.reset();
+        console.log('Фид добавлен:', url);
+      })
+      .catch(error => {
+        state.rssProcess.stateProcess = 'failed';
+        state.rssProcess.errors.push(error.message);
+        console.error('Ошибка: ', error.message)
+      })
   });
 
   render();

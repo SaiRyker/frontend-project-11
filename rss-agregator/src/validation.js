@@ -1,23 +1,19 @@
-import {
-  object, string, number, date, array,
-} from 'yup';
-import { proxy, snapshot, subscribe } from 'valtio/vanilla';
-import onChange from 'on-change';
+/* eslint-disable no-unused-vars */
+import { object, string } from 'yup';
 
 const formSchema = object().shape({
   url: string().url().required(),
 });
 
-const validateForm = async (formData, state) => {
-  try {
-    const resultValidation = await formSchema.validate(formData);
+const validateForm = (formData) => formSchema.validate(formData)
+  .then(() => {
     console.log('success');
     return {};
-  } catch (err) {
-    console.error('Ошибка валидации URL: ', err.message);
+  })
+  .catch((err) => {
+    console.log('Ошибка валидации URL: ', err.message);
     return err;
-  }
-};
+  });
 
 const validateDublicate = (feed, arr) => {
   try {
@@ -26,7 +22,7 @@ const validateDublicate = (feed, arr) => {
     }
     return {};
   } catch (err) {
-    return { errors: err.message };
+    return err;
   }
 };
 
