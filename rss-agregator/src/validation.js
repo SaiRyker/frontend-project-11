@@ -1,5 +1,14 @@
 /* eslint-disable no-unused-vars */
-import { object, string } from 'yup';
+import { object, string, setLocale } from 'yup';
+
+setLocale({
+  mixed: {
+    default: 'Что-то пошло не так',
+  },
+  string: {
+    url: ({ url }) => ({ key: 'invalidUrl', values: { url } }),
+  },
+});
 
 const formSchema = object().shape({
   url: string().url().required(),

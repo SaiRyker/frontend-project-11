@@ -2,7 +2,7 @@
 // import { render } from "./init.js";
 import onChange from 'on-change';
 
-const render = (elements, state) => {
+const render = (elements, state, i18n) => {
   elements.feeds.innerHTML = '';
 
   state.feeds.forEach((feed) => {
@@ -15,13 +15,20 @@ const render = (elements, state) => {
   });
 
   if (state.rssProcess.stateProcess === 'failed') {
-    const errDiv = document.querySelector('#errors')
-    console.log("Errors: ", state.rssProcess.errors)
-    const errors = state.rssProcess.errors.join(', ')
-    errDiv.textContent = errors
+    const errors = state.rssProcess.errors
+    const errDiv = document.querySelector('#notifications')
+    console.log("Errors: ", errors)
+    errors.forEach((error) => {
+        errDiv.textContent = i18n.t(`errors.${error}`)
+    })
     elements.inputEl.classList.add('is-invalid');
   } else {
     elements.inputEl.classList.remove('is-invalid');
+  }
+
+  if (state.rssProcess.stateProcess === 'success') {
+    const notifDiv = document.querySelector('#notifications')
+    notifDiv.textContent = i18n.t(`success`)
   }
 
 
@@ -30,9 +37,9 @@ const render = (elements, state) => {
   elements.inputEl.focus()
 }
 
-const watchState = (state, elements) => {
+const watchState = (state, elements, i18n) => {
     const watcherState = onChange(state, (path) => {
-        render(elements, state)
+        render(elements, state, i18n)
     })
 
     return watcherState

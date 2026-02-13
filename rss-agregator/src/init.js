@@ -1,12 +1,14 @@
 /* eslint-disable import/extensions */
 /* eslint-disable */
 import './style.css';
-import { proxy, snapshot, subscribe } from 'valtio/vanilla';
+// import { proxy, snapshot, subscribe } from 'valtio/vanilla';
 import { validateForm, validateDublicate } from './validation.js';
+import i18next from 'i18next';
+import resourses from './locales/resourses.js';
 import { watchState } from './view.js';
 
 const init = () => {
-  const state = proxy({
+  const state = {
 
     formUrl: {
       url: '',
@@ -20,7 +22,7 @@ const init = () => {
 
     feeds: [],
 
-  });
+  };
 
   const elements = {
     formContainer: document.querySelector('#form-section'),
@@ -31,44 +33,56 @@ const init = () => {
     feeds: document.createElement('div'),
   };
 
-  const watcher = watchState(state, elements)
+  const i18Instance = i18next.createInstance()
 
-  elements.formEl.addEventListener('submit', (event) => {
-    event.preventDefault();
+  i18Instance.init({
+    lng: 'ru',
+    fallbackLng: 'ru',
+    debug: true,
+    resources: resourses,
+  }).then(() => {
+    console.log(i18Instance.exists('errors.invalidUrl'));
+    console.log(i18Instance.t('errors.invalidUrl')); 
+    const watcher = watchState(state, elements, i18Instance)
 
-    const formData = new FormData(event.target).get('url');
-    const url = formData.trim();
-    console.log(url);
+    elements.formEl.addEventListener('submit', (event) => {
+      event.preventDefault();
 
-    watcher.rssProcess.errors = [];
-    watcher.rssProcess.stateProcess = 'processing';
+      const formData = new FormData(event.target).get('url');
+      const url = formData.trim();
+      console.log(url);
 
-    validateForm({url})
-      .then(formResult => {
-        if (formResult instanceof Error) {
+      watcher.rssProcess.errors = [];
+      watcher.rssProcess.stateProcess = 'processing';
+
+      validateForm({url})
+        .then(formResult => {
+          if (formResult instanceof Error) {
+            watcher.rssProcess.errors.push('invalidUrl');
             throw formResult
-        }
-        const dublicateResult = validateDublicate(url, state.feeds)
+          }
+          const dublicateResult = validateDublicate(url, state.feeds)
 
-        if (dublicateResult instanceof Error) {
+          if (dublicateResult instanceof Error) {
+            watcher.rssProcess.errors.push('dublicate');
             throw dublicateResult
-        }
+          }
 
-        return new Promise(resolve => setTimeout(resolve, 100));
-      })
-      .then(() => {
-        watcher.feeds.push(url);
-        watcher.rssProcess.stateProcess = 'success';
-        event.target.reset();
-        console.log('Фид добавлен:', url);
-      })
-      .catch(error => {
-        watcher.rssProcess.stateProcess = 'failed';
-        watcher.rssProcess.errors.push(error.message);
-        console.error('Ошибка: ', error.message)
-      })
-  });
+          return new Promise(resolve => setTimeout(resolve, 100));
+        })
+        .then(() => {
+          watcher.feeds.push(url);
+          watcher.rssProcess.stateProcess = 'success';
+          event.target.reset();
+          console.log('Фид добавлен:', url);
+        })
+        .catch(error => {
+          watcher.rssProcess.stateProcess = 'failed';
+          console.error('Ошибка: ', error.message)
+        })
+    });
 
+  })
 };
 
 export { init }
