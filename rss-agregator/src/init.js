@@ -4,32 +4,30 @@ import './style.css';
 import { proxy, snapshot, subscribe } from 'valtio/vanilla';
 import { validateForm, validateDublicate } from './validation.js';
 
-const addStyles = (elements, state) => {
-  const obj = snapshot(state);
-  elements.inputEl.id = 'url-input';
-  elements.inputEl.type = 'text';
-  elements.inputEl.name = 'url';
-  elements.inputEl.placeholder = 'ссылка RSS';
-  elements.inputEl.autocomplete = 'off';
-  elements.inputEl.setAttribute('aria-label', 'url');
-  elements.inputEl.required = true;
-  elements.inputEl.autofocus = true;
-  elements.inputEl.classList.remove('is-invalid');
+// const addStyles = (elements, state) => {
+//   const obj = snapshot(state);
+//   // elements.inputEl.id = 'url-input';
+//   // elements.inputEl.type = 'text';
+//   // elements.inputEl.name = 'url';
+//   // elements.inputEl.placeholder = 'ссылка RSS';
+//   // elements.inputEl.autocomplete = 'off';
+//   // elements.inputEl.setAttribute('aria-label', 'url');
+//   // elements.inputEl.required = true;
+//   // elements.inputEl.autofocus = true;
+//   // elements.inputEl.classList.remove('is-invalid');
 
-  if (obj.rssProcess.stateProcess === 'failed') {
-    elements.inputEl.classList.add('is-invalid');
-  }
+//   if (obj.rssProcess.stateProcess === 'failed') {
+//   }
 
-  elements.submitBtn.type = 'submit';
-  elements.submitBtn.textContent = 'Добавить';
-}
+//   // elements.submitBtn.type = 'submit';
+//   // elements.submitBtn.textContent = 'Добавить';
+// }
 
 const render = (elements, state) => {
-  console.log(state.feeds);
-  elements.container.innerHTML = '';
+  const obj = snapshot(state) 
   elements.feeds.innerHTML = '';
 
-  addStyles(elements, state);
+  // addStyles(elements, state);
   state.feeds.forEach((feed) => {
     const h2El = document.createElement('h2');
     h2El.textContent = 'New Feed';
@@ -38,11 +36,18 @@ const render = (elements, state) => {
     elements.feeds.appendChild(h2El);
     elements.feeds.appendChild(pEl);
   });
+
+  if (obj.rssProcess.stateProcess === 'failed') {
+    const errDiv = document.querySelector('#errors')
+    console.log("Errors: ", obj.rssProcess.errors)
+    const errors = obj.rssProcess.errors.join(', ')
+    errDiv.textContent = errors
+    elements.inputEl.classList.add('is-invalid');
+  }
+
+
   elements.inputEl.value = '';
-  elements.formEl.appendChild(elements.inputEl);
-  elements.formEl.appendChild(elements.submitBtn);
-  elements.container.appendChild(elements.formEl);
-  elements.container.appendChild(elements.feeds);
+  elements.feedContainer.appendChild(elements.feeds);
   // elements.inputEl.focus()
 }
 
@@ -64,14 +69,15 @@ const init = () => {
   });
 
   const elements = {
-    container: document.querySelector('#app'),
-    formEl: document.createElement('form'),
-    inputEl: document.createElement('input'),
-    submitBtn: document.createElement('button'),
+    formContainer: document.querySelector('#form-section'),
+    feedContainer: document.querySelector('#feed-section'),
+    formEl: document.querySelector('form.rss-form'),
+    inputEl: document.querySelector('input#url-input'),
+    submitBtn: document.querySelector('button'),
     feeds: document.createElement('div'),
   };
 
-  subscribe(state, render);
+  subscribe(state, () => render(elements, state));
 
   elements.formEl.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -83,7 +89,7 @@ const init = () => {
     state.rssProcess.errors = [];
     state.rssProcess.stateProcess = 'processing';
 
-    validateForm(({url}))
+    validateForm({url})
       .then(formResult => {
         if (formResult instanceof Error) {
             throw formResult
