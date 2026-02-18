@@ -5,6 +5,7 @@ import './style.css';
 import { validateForm, validateDublicate } from './validation.js';
 import i18next from 'i18next';
 import resourses from './locales/resourses.js';
+import { parser } from './parser.js';
 import { watchState } from './view.js';
 
 const init = () => {
@@ -22,15 +23,17 @@ const init = () => {
 
     feeds: [],
 
+    posts: [],
+
   };
 
   const elements = {
     formContainer: document.querySelector('#form-section'),
     feedContainer: document.querySelector('#feed-section'),
+    postsContainer: document.querySelector('#posts-section'),
     formEl: document.querySelector('form.rss-form'),
     inputEl: document.querySelector('input#url-input'),
     submitBtn: document.querySelector('button'),
-    feeds: document.createElement('div'),
   };
 
   const i18Instance = i18next.createInstance()
@@ -68,10 +71,14 @@ const init = () => {
             throw dublicateResult
           }
 
-          return new Promise(resolve => setTimeout(resolve, 100));
+          return parser(url)
         })
-        .then(() => {
-          watcher.feeds.push(url);
+        .then((response) => {
+          console.log(response)
+          const posts = response.posts
+          const feedInfo = response.feed
+          watcher.feeds.push({url, feedInfo});
+          watcher.posts.push(...posts)
           watcher.rssProcess.stateProcess = 'success';
           event.target.reset();
           console.log('Фид добавлен:', url);
