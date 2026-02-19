@@ -1,10 +1,10 @@
 /* eslint-disable */
 import axios from 'axios'
+import _ from 'lodash'
 
 const parser = (url) => {
 
     const allOriginUrl = 'https://allorigins.hexlet.app/get'
-    // const encodeUrlParam = encodeURIComponent(url) 
 
     return axios.get(allOriginUrl, {
         params: {
@@ -13,20 +13,22 @@ const parser = (url) => {
         },
     })
     .then( function (response) {
-        console.log(response)
         const parser = new DOMParser();
         const xmlData = response.data.contents
         const docFetched = parser.parseFromString(xmlData, "application/xml")
-        console.log(docFetched)
+
         const mainTitle = docFetched.querySelector('title').textContent
         const mainDescription = docFetched.querySelector('description').textContent
-        console.log(mainTitle)
-        console.log(mainDescription)
+        const id_feed = _.uniqueId()
+
         const items = docFetched.querySelectorAll('item')
         const itemsArr = []
 
         items.forEach((item) => {
-            const obj = {}
+            const obj = {
+                id_post: _.uniqueId(),
+                feed_id: id_feed,
+            }
             item.childNodes.forEach((node) => {
                 obj[`${node.nodeName}`] = node
             })
@@ -34,7 +36,7 @@ const parser = (url) => {
         })
 
         console.log(itemsArr)
-        return {posts: itemsArr, feed: {mainTitle, mainDescription,}}
+        return {posts: itemsArr, feed: {id_feed, mainTitle, mainDescription,}}
     })
     .catch(function (err) {
         console.log(err)

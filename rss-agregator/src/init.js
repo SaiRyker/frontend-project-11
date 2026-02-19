@@ -74,7 +74,11 @@ const init = () => {
           return parser(url)
         })
         .then((response) => {
-          console.log(response)
+          if (response instanceof Error) {
+            watcher.rssProcess.errors.push('invalidRSS');
+            throw response
+          }
+
           const posts = response.posts
           const feedInfo = response.feed
           watcher.feeds.push({url, feedInfo});
