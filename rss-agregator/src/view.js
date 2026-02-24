@@ -44,10 +44,22 @@ const render = (elements, state, i18n) => {
       const aEl = document.createElement('a')
       aEl.href = post.link
       aEl.textContent = post.title
+      aEl.target = "_blank"
+      aEl.setAttribute("data-id", `${post.id_post}`)
+
+      if (state.viewState.visitedPosts.has(post.id_post)) {
+        aEl.classList.add("fw-normal")
+      } else {
+        aEl.classList.add("fw-bold")
+      }
 
       const btnEl = document.createElement('button')
       btnEl.textContent = 'Просмотр'
       btnEl.type = 'button'
+      btnEl.classList.add('view-btn', 'btn', 'btn-primary')
+      btnEl.setAttribute("data-bs-toggle", "modal")
+      btnEl.setAttribute("data-bs-target", "#modal-post")
+      btnEl.setAttribute("data-id", `${post.id_post}`)
 
       liEl.appendChild(aEl)
       liEl.appendChild(btnEl)
@@ -69,7 +81,23 @@ const render = (elements, state, i18n) => {
       elements.feedContainer.appendChild(feedDiv)
     });
 
+    const postModal = state.posts.find(function (post) {
+      return post.id_post === state.viewState.modalWindowActive
+    })
+    if (postModal) {
+      const modalTitle = document.querySelector('.modal-title')
+      const modalBody = document.querySelector('.modal-body')
+      modalTitle.textContent = postModal.title
+      modalBody.textContent = postModal.description
+
+      const modalFooter = document.querySelector('.modal-footer')
+      const btnPrim = modalFooter.querySelector('.btn-primary')
+      btnPrim.href = postModal.link
+    }
+
   }
+
+
 
 
   elements.inputEl.value = '';

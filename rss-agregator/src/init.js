@@ -1,7 +1,6 @@
 /* eslint-disable import/extensions */
 /* eslint-disable */
 import './style.css';
-// import { proxy, snapshot, subscribe } from 'valtio/vanilla';
 import { validateForm, validateDublicate } from './validation.js';
 import i18next from 'i18next';
 import resourses from './locales/resourses.js';
@@ -27,6 +26,12 @@ const init = () => {
 
     posts: [],
 
+    viewState:{
+      modalWindowActive: 0,
+      visitedPosts: new Set(),
+    }
+
+
   };
 
   const elements = {
@@ -47,6 +52,17 @@ const init = () => {
     resources: resourses,
   }).then(() => {
     const watcher = watchState(state, elements, i18Instance)
+    const modalWindow = document.querySelector('#modal-post')
+    const postsContainer = elements.postsContainer
+
+    postsContainer.addEventListener('click', (event) => {
+      const link = event.target.closest('[data-id]')
+      if (!link) return
+
+      const postId = link.dataset.id
+      watcher.viewState.visitedPosts.add(postId)
+    })
+    
 
     const getUrl = (url) => {
       const protocol = 'https'
@@ -68,17 +84,18 @@ const init = () => {
         const allUpdatedPosts = {
           posts: []
         }
+        if (currentPosts.length === 0) {
+          return
+        }
 
         responses.forEach((response) => {
           const urlFeed = response.data.status.url
           const [{ id_feed }] = watcher.feeds.filter((feed) => feed.link === urlFeed)
-          console.log(id_feed)
+
           const oldPosts = currentPosts.filter((post) => post.feed_id === id_feed)
           const parsedPosts = parser(response.data.contents, urlFeed)
           const newPosts = _.differenceBy(parsedPosts, oldPosts, 'link')
-          console.log("Старые ", oldPosts)
-          console.log("Парсерсные ", parsedPosts)
-          console.log("Новые ", newPosts)
+
           const newPostsIds = newPosts.map((post) => ({
               id_post: _.uniqueId(),
               feed_id: id_feed,
@@ -102,7 +119,6 @@ const init = () => {
 
       const formData = new FormData(event.target).get('url');
       const url = formData.trim();
-      console.log(url);
 
       watcher.rssProcess.errors = [];
       watcher.rssProcess.stateProcess = 'processing';
@@ -114,7 +130,7 @@ const init = () => {
             throw formResult
           }
           const dublicateResult = validateDublicate(url, watcher.feeds)
-          console.log("Dublicate valid: ", dublicateResult)
+
           if (dublicateResult instanceof Error) {
             watcher.rssProcess.errors.push('dublicate');
             throw dublicateResult
@@ -124,11 +140,16 @@ const init = () => {
         })
         .then((response) => {
           if (response instanceof Error) {
-            watcher.rssProcess.errors.push('invalidRSS');
+            watcher.rssProcess.errors.push('network');
             throw response
           }
 
           const parsedResponse = parser(response.data.contents, url)
+          if (parsedResponse instanceof Error) {
+            watcher.rssProcess.errors.push('invalidRSS');
+            throw parsedResponse
+          }
+
           const posts = parsedResponse.posts
           const feedInfo = parsedResponse.feed
           watcher.feeds.push(feedInfo);
@@ -136,13 +157,21 @@ const init = () => {
           watcher.rssProcess.stateProcess = 'success';
           event.target.reset();
           console.log('Фид добавлен:', url);
-          console.log(watcher.feeds)
+          console.log(watcher.posts)
         })
         .catch(error => {
           watcher.rssProcess.stateProcess = 'failed';
           console.error('Ошибка: ', error.message)
         })
     });
+
+    modalWindow.addEventListener('shown.bs.modal', function(event) {
+      const postId = event.relatedTarget.dataset.id
+      watcher.viewState.modalWindowActive = postId
+      watcher.viewState.visitedPosts.add(postId)
+      console.log(watcher.viewState)
+    })
+
     setTimeout(updatePosts, 5000);
   })
 };
