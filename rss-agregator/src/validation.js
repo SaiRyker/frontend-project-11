@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+/* eslint-disable */
 import { object, string, setLocale } from 'yup';
 
 setLocale({
@@ -24,11 +25,13 @@ const validateForm = (formData) => formSchema.validate(formData)
     return err;
   });
 
-const validateDublicate = (feed, arr) => {
+const validateDublicate = (feedUrl, arrFeeds) => {
   try {
-    if (arr.includes(feed)) {
-      throw new Error('RSS уже существует');
-    }
+    arrFeeds.forEach((feed) => {
+      if (feed.link === feedUrl) {
+        throw new Error('RSS уже существует');
+      }
+    })
     return {};
   } catch (err) {
     return err;

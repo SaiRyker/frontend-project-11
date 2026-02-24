@@ -19,8 +19,8 @@ const render = (elements, state, i18n) => {
   }
 
   if (state.rssProcess.stateProcess === 'success') {
-    elements.feedContainer.innerHTML = '';
-    elements.postsContainer.innerHTML = '';
+    elements.postsContainer.innerHTML = ''
+    elements.feedContainer.innerHTML = ''
 
     const notifDiv = document.querySelector('#notifications')
     notifDiv.textContent = i18n.t(`success`)
@@ -42,8 +42,8 @@ const render = (elements, state, i18n) => {
       const liEl = document.createElement('li')
 
       const aEl = document.createElement('a')
-      aEl.href = post.link.textContent
-      aEl.textContent = post.title.textContent
+      aEl.href = post.link
+      aEl.textContent = post.title
 
       const btnEl = document.createElement('button')
       btnEl.textContent = 'Просмотр'
@@ -57,10 +57,10 @@ const render = (elements, state, i18n) => {
 
     state.feeds.forEach((feed) => {
       const h3Feeds = document.createElement('h3');
-      h3Feeds.textContent = feed.feedInfo.mainTitle;
+      h3Feeds.textContent = feed.mainTitle;
 
       const pEl = document.createElement('p');
-      pEl.textContent = feed.feedInfo.mainDescription;
+      pEl.textContent = feed.mainDescription;
       const feedDiv = document.createElement('div')
 
       feedDiv.appendChild(h3Feeds)

@@ -7,6 +7,8 @@ import i18next from 'i18next';
 import resourses from './locales/resourses.js';
 import { parser } from './parser.js';
 import { watchState } from './view.js';
+import axios from 'axios';
+import _ from 'lodash';
 
 const init = () => {
   const state = {
@@ -44,9 +46,56 @@ const init = () => {
     debug: true,
     resources: resourses,
   }).then(() => {
-    console.log(i18Instance.exists('errors.invalidUrl'));
-    console.log(i18Instance.t('errors.invalidUrl')); 
     const watcher = watchState(state, elements, i18Instance)
+
+    const getUrl = (url) => {
+      const protocol = 'https'
+      const hostname = 'allorigins.hexlet.app/get'
+      const path = 'get'
+      const proxyUrl = new URL(path, `${protocol}://${hostname}`)
+      proxyUrl.searchParams.set('disableCache', 'true')
+      proxyUrl.searchParams.set('url', url)
+
+      return proxyUrl.href
+    } 
+
+    const updatePosts = () => {
+      const promisesUrl = watcher.feeds.map(({link}) => axios.get(getUrl(link)))
+      const promise = Promise.all(promisesUrl)
+      promise
+      .then(responses => {
+        const currentPosts = [...watcher.posts]
+        const allUpdatedPosts = {
+          posts: []
+        }
+
+        responses.forEach((response) => {
+          const urlFeed = response.data.status.url
+          const [{ id_feed }] = watcher.feeds.filter((feed) => feed.link === urlFeed)
+          console.log(id_feed)
+          const oldPosts = currentPosts.filter((post) => post.feed_id === id_feed)
+          const parsedPosts = parser(response.data.contents, urlFeed)
+          const newPosts = _.differenceBy(parsedPosts, oldPosts, 'link')
+          console.log("Старые ", oldPosts)
+          console.log("Парсерсные ", parsedPosts)
+          console.log("Новые ", newPosts)
+          const newPostsIds = newPosts.map((post) => ({
+              id_post: _.uniqueId(),
+              feed_id: id_feed,
+              ...post
+          }))
+          allUpdatedPosts.posts = [...allUpdatedPosts.posts, ...newPostsIds, ...oldPosts]
+        })
+        watcher.posts = allUpdatedPosts.posts
+      })
+      .catch(error => {
+        watcher.rssProcess.stateProcess = 'failed';
+        console.error('Ошибка: ', error.message)
+      })
+      .finally(() => {
+        setTimeout(updatePosts, 5000);
+      })
+    }
 
     elements.formEl.addEventListener('submit', (event) => {
       event.preventDefault();
@@ -64,14 +113,14 @@ const init = () => {
             watcher.rssProcess.errors.push('invalidUrl');
             throw formResult
           }
-          const dublicateResult = validateDublicate(url, state.feeds)
-
+          const dublicateResult = validateDublicate(url, watcher.feeds)
+          console.log("Dublicate valid: ", dublicateResult)
           if (dublicateResult instanceof Error) {
             watcher.rssProcess.errors.push('dublicate');
             throw dublicateResult
           }
 
-          return parser(url)
+          return axios.get(getUrl(url))
         })
         .then((response) => {
           if (response instanceof Error) {
@@ -79,20 +128,22 @@ const init = () => {
             throw response
           }
 
-          const posts = response.posts
-          const feedInfo = response.feed
-          watcher.feeds.push({url, feedInfo});
+          const parsedResponse = parser(response.data.contents, url)
+          const posts = parsedResponse.posts
+          const feedInfo = parsedResponse.feed
+          watcher.feeds.push(feedInfo);
           watcher.posts.push(...posts)
           watcher.rssProcess.stateProcess = 'success';
           event.target.reset();
           console.log('Фид добавлен:', url);
+          console.log(watcher.feeds)
         })
         .catch(error => {
           watcher.rssProcess.stateProcess = 'failed';
           console.error('Ошибка: ', error.message)
         })
     });
-
+    setTimeout(updatePosts, 5000);
   })
 };
 
