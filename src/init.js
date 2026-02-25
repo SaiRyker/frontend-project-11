@@ -147,11 +147,6 @@ const init = () => {
           return axios.get(getUrl(url))
         })
         .then((response) => {
-          if (response instanceof Error) {
-            watcher.rssProcess.errors.push('network');
-            throw response
-          }
-
           const parsedResponse = parser(response.data.contents, url)
           if (parsedResponse instanceof Error) {
             watcher.rssProcess.errors.push('invalidRSS');
@@ -167,6 +162,9 @@ const init = () => {
         })
         .catch(error => {
           watcher.rssProcess.stateProcess = 'failed';
+          if (watcher.rssProcess.errors.length === 0) {
+            watcher.rssProcess.error.push('network')
+          }
         })
     });
 
