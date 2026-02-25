@@ -131,7 +131,6 @@ const init = () => {
 
       watcher.rssProcess.errors = [];
       watcher.rssProcess.stateProcess = 'processing';
-
       validateForm({url})
         .then(formResult => {
           if (formResult instanceof Error) {

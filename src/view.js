@@ -4,6 +4,12 @@ import onChange from 'on-change';
 
 const render = (elements, state, i18n) => {
 
+  if (state.rssProcess.stateProcess === 'processing') {
+    elements.submitBtn.disabled = true;
+  } else {
+    elements.submitBtn.disabled = false;    
+  }
+
   if (state.rssProcess.stateProcess === 'failed') {
     const errors = state.rssProcess.errors
     const errDiv = document.querySelector('.feedback')
