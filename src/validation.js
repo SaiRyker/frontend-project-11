@@ -19,7 +19,7 @@ const validateForm = formData => formSchema.validate(formData)
 
 const validateDublicate = (feedUrl, arrFeeds) => {
   try {
-    arrFeeds.forEach(feed => {
+    arrFeeds.forEach((feed) => {
       if (feed.link === feedUrl) {
         throw new Error('RSS уже существует')
       }
