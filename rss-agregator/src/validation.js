@@ -17,11 +17,9 @@ const formSchema = object().shape({
 
 const validateForm = (formData) => formSchema.validate(formData)
   .then(() => {
-    console.log('success');
     return {};
   })
   .catch((err) => {
-    console.log('Ошибка валидации URL: ', err.message);
     return err;
   });
 

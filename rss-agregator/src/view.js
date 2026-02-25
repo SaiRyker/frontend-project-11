@@ -6,24 +6,31 @@ const render = (elements, state, i18n) => {
 
   if (state.rssProcess.stateProcess === 'failed') {
     const errors = state.rssProcess.errors
-    const errDiv = document.querySelector('#notifications')
-    console.log("Errors: ", errors)
+    const errDiv = document.querySelector('.feedback')
     errors.forEach((error) => {
-        errDiv.textContent = i18n.t(`errors.${error}`)
+      errDiv.textContent = i18n.t(`errors.${error}`)
+      errDiv.classList.remove('text-success')
+      errDiv.classList.add('text-danger')
     })
     elements.inputEl.classList.add('is-invalid');
 
     return
   } else {
     elements.inputEl.classList.remove('is-invalid');
+    const errDiv = document.querySelector('.feedback')
+    errDiv.classList.remove('text-danger')
+    errDiv.classList.add('text-success')
   }
 
   if (state.rssProcess.stateProcess === 'success') {
     elements.postsContainer.innerHTML = ''
     elements.feedContainer.innerHTML = ''
 
-    const notifDiv = document.querySelector('#notifications')
-    notifDiv.textContent = i18n.t(`success`)
+
+    const errDiv = document.querySelector('.feedback')
+    errDiv.classList.remove('text-danger')
+    errDiv.classList.add('text-success')
+    errDiv.textContent = i18n.t(`success`)
 
     
     const h1Posts = document.createElement('h1')
@@ -36,10 +43,11 @@ const render = (elements, state, i18n) => {
 
     const ulPosts = document.createElement('ul')
     elements.postsContainer.appendChild(ulPosts)
+    ulPosts.classList.add("list-group", "border-0", "rounded-0")
 
     state.posts.forEach((post) => {
-
       const liEl = document.createElement('li')
+      liEl.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-start", "border-0", "border-end-0")
 
       const aEl = document.createElement('a')
       aEl.href = post.link
@@ -56,7 +64,7 @@ const render = (elements, state, i18n) => {
       const btnEl = document.createElement('button')
       btnEl.textContent = 'Просмотр'
       btnEl.type = 'button'
-      btnEl.classList.add('view-btn', 'btn', 'btn-primary')
+      btnEl.classList.add('view-btn', 'btn', 'btn-outline-primary', 'btn-sm')
       btnEl.setAttribute("data-bs-toggle", "modal")
       btnEl.setAttribute("data-bs-target", "#modal-post")
       btnEl.setAttribute("data-id", `${post.id_post}`)
@@ -67,18 +75,26 @@ const render = (elements, state, i18n) => {
       ulPosts.appendChild(liEl)
     })
 
+    const ulFeeds = document.createElement('ul')
+    elements.feedContainer.appendChild(ulFeeds)
+    ulFeeds.classList.add("list-group", "border-0", "rounded-0")
+
     state.feeds.forEach((feed) => {
+      const liEl = document.createElement('li')
+      liEl.classList.add("list-group-item", "border-0", "border-end-0")
+
       const h3Feeds = document.createElement('h3');
       h3Feeds.textContent = feed.mainTitle;
+      h3Feeds.classList.add("h6", "m-0")
 
       const pEl = document.createElement('p');
       pEl.textContent = feed.mainDescription;
-      const feedDiv = document.createElement('div')
+      pEl.classList.add("m-0", "small", "text-black-50")
 
-      feedDiv.appendChild(h3Feeds)
-      feedDiv.appendChild(pEl)
+      liEl.appendChild(h3Feeds)
+      liEl.appendChild(pEl)
 
-      elements.feedContainer.appendChild(feedDiv)
+      ulFeeds.appendChild(liEl)
     });
 
     const postModal = state.posts.find(function (post) {

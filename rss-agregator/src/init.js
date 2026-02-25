@@ -8,6 +8,7 @@ import { parser } from './parser.js';
 import { watchState } from './view.js';
 import axios from 'axios';
 import _ from 'lodash';
+import * as yup from 'yup'
 
 const init = () => {
   const state = {
@@ -42,6 +43,15 @@ const init = () => {
     inputEl: document.querySelector('input#url-input'),
     submitBtn: document.querySelector('button'),
   };
+
+  yup.setLocale({
+    mixed: {
+      required: 'errors.notBeEmpty',
+    },
+    string: {
+      url: 'errors.invalidUrl',
+    },
+  })
 
   const i18Instance = i18next.createInstance()
 
@@ -107,7 +117,6 @@ const init = () => {
       })
       .catch(error => {
         watcher.rssProcess.stateProcess = 'failed';
-        console.error('Ошибка: ', error.message)
       })
       .finally(() => {
         setTimeout(updatePosts, 5000);
@@ -156,20 +165,16 @@ const init = () => {
           watcher.posts.push(...posts)
           watcher.rssProcess.stateProcess = 'success';
           event.target.reset();
-          console.log('Фид добавлен:', url);
-          console.log(watcher.posts)
         })
         .catch(error => {
           watcher.rssProcess.stateProcess = 'failed';
-          console.error('Ошибка: ', error.message)
         })
     });
 
-    modalWindow.addEventListener('shown.bs.modal', function(event) {
+    modalWindow.addEventListener('show.bs.modal', function(event) {
       const postId = event.relatedTarget.dataset.id
       watcher.viewState.modalWindowActive = postId
       watcher.viewState.visitedPosts.add(postId)
-      console.log(watcher.viewState)
     })
 
     setTimeout(updatePosts, 5000);

@@ -26,7 +26,6 @@ const parser = (responseData, url) => {
         })
         return {posts: itemsArr, feed: {id_feed, mainTitle, mainDescription, link: url}}
     } catch(err) {
-        console.log(err);
         return err;
     }
 }
