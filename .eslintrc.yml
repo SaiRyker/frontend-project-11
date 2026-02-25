@@ -11,8 +11,32 @@ parserOptions:
   ecmaVersion: latest
   sourceType: module
 
+settings:
+  import/resolver:
+    node:
+      extensions:
+        - .js
+        - .jsx
+        - .ts
+        - .tsx
+      paths:
+        - node_modules
+
 rules:
   no-console: off
+  import/no-unresolved:
+    - error
+    - ignore:
+        - '^on-change$'
   import/extensions:
     - error
     - always
+  semi:
+    - error
+    - never
+  no-param-reassign:
+    - error
+    - props: false
+  no-unused-vars:
+  - error
+  - argsIgnorePattern: "^_"

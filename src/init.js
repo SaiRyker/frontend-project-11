@@ -1,14 +1,12 @@
-/* eslint-disable import/extensions */
-/* eslint-disable */
-import './style.css';
-import { validateForm, validateDublicate } from './validation.js';
-import i18next from 'i18next';
-import resourses from './locales/resourses.js';
-import { parser } from './parser.js';
-import { watchState } from './view.js';
-import axios from 'axios';
-import _ from 'lodash';
+import './style.css'
+import i18next from 'i18next'
+import axios from 'axios'
+import _ from 'lodash'
 import * as yup from 'yup'
+import { validateForm, validateDublicate } from './validation.js'
+import resourses from './locales/resourses.js'
+import parser from './parser.js'
+import watchState from './view.js'
 
 const init = () => {
   const state = {
@@ -27,13 +25,12 @@ const init = () => {
 
     posts: [],
 
-    viewState:{
+    viewState: {
       modalWindowActive: 0,
       visitedPosts: new Set(),
-    }
+    },
 
-
-  };
+  }
 
   const elements = {
     formContainer: document.querySelector('#form-section'),
@@ -42,7 +39,7 @@ const init = () => {
     formEl: document.querySelector('form.rss-form'),
     inputEl: document.querySelector('input#url-input'),
     submitBtn: document.querySelector('button'),
-  };
+  }
 
   yup.setLocale({
     mixed: {
@@ -63,7 +60,7 @@ const init = () => {
   }).then(() => {
     const watcher = watchState(state, elements, i18Instance)
     const modalWindow = document.querySelector('#modal-post')
-    const postsContainer = elements.postsContainer
+    const { postsContainer } = elements
 
     postsContainer.addEventListener('click', (event) => {
       const link = event.target.closest('[data-id]')
@@ -72,7 +69,6 @@ const init = () => {
       const postId = link.dataset.id
       watcher.viewState.visitedPosts.add(postId)
     })
-    
 
     const getUrl = (url) => {
       const protocol = 'https'
@@ -83,64 +79,65 @@ const init = () => {
       proxyUrl.searchParams.set('url', url)
 
       return proxyUrl.href
-    } 
+    }
 
     const updatePosts = () => {
-      const promisesUrl = watcher.feeds.map(({link}) => axios.get(getUrl(link)))
+      const promisesUrl = watcher.feeds.map(({ link }) => axios.get(getUrl(link)))
       const promise = Promise.all(promisesUrl)
       promise
-      .then(responses => {
-        const currentPosts = [...watcher.posts]
-        const allUpdatedPosts = {
-          posts: []
-        }
-        if (currentPosts.length === 0) {
-          return
-        }
+        .then((responses) => {
+          const currentPosts = [...watcher.posts]
+          const allUpdatedPosts = {
+            posts: [],
+          }
+          if (currentPosts.length === 0) {
+            return
+          }
 
-        responses.forEach((response) => {
-          const urlFeed = response.data.status.url
-          const [{ id_feed }] = watcher.feeds.filter((feed) => feed.link === urlFeed)
+          responses.forEach((response) => {
+            const urlFeed = response.data.status.url
+            const [{ idFeed }] = watcher.feeds.filter((feed) => feed.link === urlFeed)
 
-          const oldPosts = currentPosts.filter((post) => post.feed_id === id_feed)
-          const parsedPosts = parser(response.data.contents, urlFeed)
-          const newPosts = _.differenceBy(parsedPosts, oldPosts, 'link')
+            const oldPosts = currentPosts.filter((post) => post.feed_id === idFeed)
+            const parsedPosts = parser(response.data.contents, urlFeed)
+            const newPosts = _.differenceBy(parsedPosts, oldPosts, 'link')
 
-          const newPostsIds = newPosts.map((post) => ({
+            const newPostsIds = newPosts.map((post) => ({
               id_post: _.uniqueId(),
-              feed_id: id_feed,
-              ...post
-          }))
-          allUpdatedPosts.posts = [...allUpdatedPosts.posts, ...newPostsIds, ...oldPosts]
+              feed_id: idFeed,
+              ...post,
+            }))
+            allUpdatedPosts.posts = [...allUpdatedPosts.posts, ...newPostsIds, ...oldPosts]
+          })
+          watcher.posts = allUpdatedPosts.posts
         })
-        watcher.posts = allUpdatedPosts.posts
-      })
-      .catch(error => {
-        watcher.rssProcess.stateProcess = 'failed';
-      })
-      .finally(() => {
-        setTimeout(updatePosts, 5000);
-      })
+        .catch((error) => {
+          watcher.rssProcess.stateProcess = 'failed'
+          return error
+        })
+        .finally(() => {
+          setTimeout(updatePosts, 5000)
+        })
     }
 
     elements.formEl.addEventListener('submit', (event) => {
-      event.preventDefault();
+      event.preventDefault()
 
-      const formData = new FormData(event.target).get('url');
-      const url = formData.trim();
+      const formData = new FormData(event.target).get('url')
+      const url = formData.trim()
 
-      watcher.rssProcess.errors = [];
-      watcher.rssProcess.stateProcess = 'processing';
-      validateForm({url})
-        .then(formResult => {
+      watcher.rssProcess.errors = []
+      watcher.rssProcess.stateProcess = 'processing'
+      validateForm({ url })
+        .then((formResult) => {
           if (formResult instanceof Error) {
-            watcher.rssProcess.errors.push('invalidUrl');
+            watcher.rssProcess.errors.push('invalidUrl')
             throw formResult
           }
           const dublicateResult = validateDublicate(url, watcher.feeds)
 
           if (dublicateResult instanceof Error) {
-            watcher.rssProcess.errors.push('dublicate');
+            watcher.rssProcess.errors.push('dublicate')
             throw dublicateResult
           }
 
@@ -149,33 +146,33 @@ const init = () => {
         .then((response) => {
           const parsedResponse = parser(response.data.contents, url)
           if (parsedResponse instanceof Error) {
-            watcher.rssProcess.errors.push('invalidRSS');
+            watcher.rssProcess.errors.push('invalidRSS')
             throw parsedResponse
           }
 
-          const posts = parsedResponse.posts
+          const { posts } = parsedResponse
           const feedInfo = parsedResponse.feed
-          watcher.feeds.push(feedInfo);
+          watcher.feeds.push(feedInfo)
           watcher.posts.push(...posts)
-          watcher.rssProcess.stateProcess = 'success';
-          event.target.reset();
+          watcher.rssProcess.stateProcess = 'success'
+          event.target.reset()
         })
-        .catch(error => {
-          watcher.rssProcess.stateProcess = 'failed';
+        .catch(() => {
+          watcher.rssProcess.stateProcess = 'failed'
           if (watcher.rssProcess.errors.length === 0) {
             watcher.rssProcess.errors.push('network')
           }
         })
-    });
+    })
 
-    modalWindow.addEventListener('show.bs.modal', function(event) {
+    modalWindow.addEventListener('show.bs.modal', (event) => {
       const postId = event.relatedTarget.dataset.id
       watcher.viewState.modalWindowActive = postId
       watcher.viewState.visitedPosts.add(postId)
     })
 
-    setTimeout(updatePosts, 5000);
+    setTimeout(updatePosts, 5000)
   })
-};
+}
 
-export { init }
+export default init

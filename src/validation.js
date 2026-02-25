@@ -1,6 +1,4 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable */
-import { object, string, setLocale } from 'yup';
+import { object, string, setLocale } from 'yup'
 
 setLocale({
   mixed: {
@@ -9,31 +7,27 @@ setLocale({
   string: {
     url: ({ url }) => ({ key: 'invalidUrl', values: { url } }),
   },
-});
+})
 
 const formSchema = object().shape({
   url: string().url().required(),
-});
+})
 
 const validateForm = (formData) => formSchema.validate(formData)
-  .then(() => {
-    return {};
-  })
-  .catch((err) => {
-    return err;
-  });
+  .then(() => ({}))
+  .catch((err) => err)
 
 const validateDublicate = (feedUrl, arrFeeds) => {
   try {
     arrFeeds.forEach((feed) => {
       if (feed.link === feedUrl) {
-        throw new Error('RSS уже существует');
+        throw new Error('RSS уже существует')
       }
     })
-    return {};
+    return {}
   } catch (err) {
-    return err;
+    return err
   }
-};
+}
 
-export { validateForm, validateDublicate };
+export { validateForm, validateDublicate }
