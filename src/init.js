@@ -163,7 +163,7 @@ const init = () => {
         .catch(error => {
           watcher.rssProcess.stateProcess = 'failed';
           if (watcher.rssProcess.errors.length === 0) {
-            watcher.rssProcess.error.push('network')
+            watcher.rssProcess.errors.push('network')
           }
         })
     });
