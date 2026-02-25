@@ -24,6 +24,7 @@ settings:
 
 rules:
   no-console: off
+  'arrow-parens': ['error', 'as-needed', { 'requireForBlockBody': false }]
   import/no-unresolved:
     - error
     - ignore:
@@ -40,3 +41,4 @@ rules:
   no-unused-vars:
   - error
   - argsIgnorePattern: "^_"
+  'brace-style': ['error', 'stroustrup']

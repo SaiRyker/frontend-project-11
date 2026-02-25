@@ -5,13 +5,14 @@ const render = (elements, state, i18n) => {
 
   if (state.rssProcess.stateProcess === 'processing') {
     elements.submitBtn.disabled = true
-  } else {
+  }
+  else {
     elements.submitBtn.disabled = false
   }
 
   if (state.rssProcess.stateProcess === 'failed') {
     const { errors } = state.rssProcess
-    errors.forEach((error) => {
+    errors.forEach(error => {
       errDiv.textContent = i18n.t(`errors.${error}`)
       errDiv.classList.remove('text-success')
       errDiv.classList.add('text-danger')
@@ -41,7 +42,7 @@ const render = (elements, state, i18n) => {
     elements.postsContainer.appendChild(ulPosts)
     ulPosts.classList.add('list-group', 'border-0', 'rounded-0')
 
-    state.posts.forEach((post) => {
+    state.posts.forEach(post => {
       const liEl = document.createElement('li')
       liEl.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0')
 
@@ -53,7 +54,8 @@ const render = (elements, state, i18n) => {
 
       if (state.viewState.visitedPosts.has(post.id_post)) {
         aEl.classList.add('fw-normal')
-      } else {
+      }
+      else {
         aEl.classList.add('fw-bold')
       }
 
@@ -75,7 +77,7 @@ const render = (elements, state, i18n) => {
     elements.feedContainer.appendChild(ulFeeds)
     ulFeeds.classList.add('list-group', 'border-0', 'rounded-0')
 
-    state.feeds.forEach((feed) => {
+    state.feeds.forEach(feed => {
       const liEl = document.createElement('li')
       liEl.classList.add('list-group-item', 'border-0', 'border-end-0')
 
@@ -93,7 +95,7 @@ const render = (elements, state, i18n) => {
       ulFeeds.appendChild(liEl)
     })
 
-    const postModal = state.posts.find((post) => post.id_post === state.viewState.modalWindowActive)
+    const postModal = state.posts.find(post => post.id_post === state.viewState.modalWindowActive)
     if (postModal) {
       const modalTitle = document.querySelector('.modal-title')
       const modalBody = document.querySelector('.modal-body')
@@ -110,7 +112,7 @@ const render = (elements, state, i18n) => {
 }
 
 const watchState = (state, elements, i18n) => {
-  const watcherState = onChange(state, (_) => {
+  const watcherState = onChange(state, () => {
     render(elements, state, i18n)
   })
 

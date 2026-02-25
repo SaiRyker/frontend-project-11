@@ -12,12 +12,12 @@ const parser = (responseData, url) => {
     const items = docFetched.querySelectorAll('item')
     const itemsArr = []
 
-    items.forEach((item) => {
+    items.forEach(item => {
       const obj = {
         id_post: _.uniqueId(),
         feed_id: idFeed,
       }
-      item.childNodes.forEach((node) => {
+      item.childNodes.forEach(node => {
         obj[`${node.nodeName}`] = node.textContent
       })
       itemsArr.push(obj)
@@ -28,7 +28,8 @@ const parser = (responseData, url) => {
         idFeed, mainTitle, mainDescription, link: url,
       },
     }
-  } catch (err) {
+  }
+  catch (err) {
     return err
   }
 }

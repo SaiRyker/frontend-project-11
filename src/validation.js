@@ -13,19 +13,20 @@ const formSchema = object().shape({
   url: string().url().required(),
 })
 
-const validateForm = (formData) => formSchema.validate(formData)
+const validateForm = formData => formSchema.validate(formData)
   .then(() => ({}))
-  .catch((err) => err)
+  .catch(err => err)
 
 const validateDublicate = (feedUrl, arrFeeds) => {
   try {
-    arrFeeds.forEach((feed) => {
+    arrFeeds.forEach(feed => {
       if (feed.link === feedUrl) {
         throw new Error('RSS уже существует')
       }
     })
     return {}
-  } catch (err) {
+  }
+  catch (err) {
     return err
   }
 }
