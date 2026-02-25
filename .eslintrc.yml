@@ -24,7 +24,6 @@ settings:
 
 rules:
   no-console: off
-  'arrow-parens': ['error', 'as-needed', { 'requireForBlockBody': false }]
   import/no-unresolved:
     - error
     - ignore:
@@ -35,6 +34,7 @@ rules:
   semi:
     - error
     - never
+  'arrow-parens': off
   no-param-reassign:
     - error
     - props: false
@@ -42,3 +42,7 @@ rules:
   - error
   - argsIgnorePattern: "^_"
   'brace-style': ['error', 'stroustrup']
+  'no-underscore-dangle': 'off'
+  'operator-linebreak': 'off'
+  'implicit-arrow-linebreak': 'off'
+  'function-paren-newline': 'off'

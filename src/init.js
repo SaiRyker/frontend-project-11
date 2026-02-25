@@ -62,7 +62,7 @@ const init = () => {
     const modalWindow = document.querySelector('#modal-post')
     const { postsContainer } = elements
 
-    postsContainer.addEventListener('click', event => {
+    postsContainer.addEventListener('click', (event) => {
       const link = event.target.closest('[data-id]')
       if (!link) return
 
@@ -70,7 +70,7 @@ const init = () => {
       watcher.viewState.visitedPosts.add(postId)
     })
 
-    const getUrl = url => {
+    const getUrl = (url) => {
       const protocol = 'https'
       const hostname = 'allorigins.hexlet.app/get'
       const path = 'get'
@@ -85,7 +85,7 @@ const init = () => {
       const promisesUrl = watcher.feeds.map(({ link }) => axios.get(getUrl(link)))
       const promise = Promise.all(promisesUrl)
       promise
-        .then(responses => {
+        .then((responses) => {
           const currentPosts = [...watcher.posts]
           const allUpdatedPosts = {
             posts: [],
@@ -94,7 +94,7 @@ const init = () => {
             return
           }
 
-          responses.forEach(response => {
+          responses.forEach((response) => {
             const urlFeed = response.data.status.url
             const [{ idFeed }] = watcher.feeds.filter(feed => feed.link === urlFeed)
 
@@ -111,7 +111,7 @@ const init = () => {
           })
           watcher.posts = allUpdatedPosts.posts
         })
-        .catch(error => {
+        .catch((error) => {
           watcher.rssProcess.stateProcess = 'failed'
           return error
         })
@@ -120,7 +120,7 @@ const init = () => {
         })
     }
 
-    elements.formEl.addEventListener('submit', event => {
+    elements.formEl.addEventListener('submit', (event) => {
       event.preventDefault()
 
       const formData = new FormData(event.target).get('url')
@@ -129,7 +129,7 @@ const init = () => {
       watcher.rssProcess.errors = []
       watcher.rssProcess.stateProcess = 'processing'
       validateForm({ url })
-        .then(formResult => {
+        .then((formResult) => {
           if (formResult instanceof Error) {
             watcher.rssProcess.errors.push('invalidUrl')
             throw formResult
@@ -143,7 +143,7 @@ const init = () => {
 
           return axios.get(getUrl(url))
         })
-        .then(response => {
+        .then((response) => {
           const parsedResponse = parser(response.data.contents, url)
           if (parsedResponse instanceof Error) {
             watcher.rssProcess.errors.push('invalidRSS')
@@ -165,7 +165,7 @@ const init = () => {
         })
     })
 
-    modalWindow.addEventListener('show.bs.modal', event => {
+    modalWindow.addEventListener('show.bs.modal', (event) => {
       const postId = event.relatedTarget.dataset.id
       watcher.viewState.modalWindowActive = postId
       watcher.viewState.visitedPosts.add(postId)
